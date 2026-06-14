@@ -1,0 +1,74 @@
+version: '3.8'
+
+services:
+  # MySQL Database
+  db:
+    image: mysql:8.0
+    container_name: reviewiq-db
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-root}
+      MYSQL_DATABASE: ${DB_NAME:-reviewiq_db}
+      MYSQL_USER: ${DB_USER:-reviewiq}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-reviewiq123}
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./scripts/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - reviewiq-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: reviewiq-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - reviewiq-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Flask Application
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: reviewiq-app
+    environment:
+      FLASK_ENV: ${FLASK_ENV:-production}
+      DATABASE_URL: mysql+pymysql://${DB_USER:-reviewiq}:${DB_PASSWORD:-reviewiq123}@db:3306/${DB_NAME:-reviewiq_db}
+      REDIS_URL: redis://redis:6379/0
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-your-secret-key}
+    ports:
+      - "5000:5000"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./app:/app/app
+      - ./models:/app/models
+      - ./logs:/app/logs
+    networks:
+      - reviewiq-network
+    command: gunicorn --bind 0.0.0.0:5000 --workers 4 --timeout 120 run:app
+
+volumes:
+  mysql_data:
+  redis_data:
+
+networks:
+  reviewiq-network:
+    driver: bridge
