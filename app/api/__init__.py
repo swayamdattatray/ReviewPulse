@@ -1,7 +1,14 @@
-from flask import Blueprint, jsonify
-from datetime import datetime
+from flask import Blueprint
+from app.api.auth import auth_bp
 
 api_bp = Blueprint('api', __name__, url_prefix='/api/v1')
+
+# Register auth blueprint
+api_bp.register_blueprint(auth_bp)
+
+
+from flask import jsonify
+from datetime import datetime
 
 
 @api_bp.route('/health', methods=['GET'])
@@ -19,16 +26,20 @@ def health_check():
         'version': '1.0.0',
         'timestamp': datetime.utcnow().isoformat(),
         'endpoints': {
-            'auth': '/auth',
-            'products': '/products',
-            'reviews': '/reviews',
-            'sentiment': '/sentiment',
-            'fake_detection': '/fake-detection',
-            'ai_detection': '/ai-detection',
-            'trends': '/trends',
-            'recommendations': '/recommendations',
-            'analytics': '/analytics',
-            'features': '/features',
+            'auth': {
+                'register': 'POST /api/v1/auth/register',
+                'login': 'POST /api/v1/auth/login',
+                'me': 'GET /api/v1/auth/me',
+            },
+            'products': 'GET /api/v1/products',
+            'reviews': 'GET /api/v1/reviews',
+            'sentiment': 'POST /api/v1/sentiment/analyze',
+            'fake_detection': 'POST /api/v1/fake-detection/analyze',
+            'ai_detection': 'POST /api/v1/ai-detection/analyze',
+            'trends': 'GET /api/v1/trends',
+            'recommendations': 'GET /api/v1/recommendations',
+            'analytics': 'GET /api/v1/analytics/dashboard',
+            'features': 'GET /api/v1/features',
         }
     }), 200
 
@@ -47,20 +58,13 @@ def api_root():
         'description': 'AI-Powered Customer Review Intelligence Platform',
         'version': '1.0.0',
         'documentation': '/api/v1/docs',
-        'endpoints': {
-            'health': '/api/v1/health',
-            'auth': '/api/v1/auth',
-            'products': '/api/v1/products',
-            'reviews': '/api/v1/reviews',
-            'sentiment': '/api/v1/sentiment',
-            'fake_detection': '/api/v1/fake-detection',
-            'ai_detection': '/api/v1/ai-detection',
-            'trends': '/api/v1/trends',
-            'recommendations': '/api/v1/recommendations',
-            'analytics': '/api/v1/analytics',
-            'features': '/api/v1/features',
+        'quick_start': {
+            'register': 'POST /api/v1/auth/register',
+            'login': 'POST /api/v1/auth/login',
+            'get_profile': 'GET /api/v1/auth/me',
         },
         'features': [
+            'User authentication with JWT',
             'Multi-level sentiment analysis',
             'Fake review detection',
             'AI-generated review detection',
