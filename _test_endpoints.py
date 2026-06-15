@@ -35,6 +35,10 @@ for method, path in endpoints:
         print(f"  {status}  {'OK' if ok else 'FAIL':4s}  {method:4s} {path}")
     except urllib.error.HTTPError as e:
         body = json.loads(e.read())
-        print(f"  {e.code}  FAIL  {method:4s} {path}  -> {body.get('error', '?')}")
+        # For auth endpoints without data, 400/401 is expected and means the route exists
+        if e.code in (400, 401) and 'auth' in path:
+            print(f"  {e.code}  OK    {method:4s} {path}  -> (Expected auth failure)")
+        else:
+            print(f"  {e.code}  FAIL  {method:4s} {path}  -> {body.get('error', '?')}")
     except Exception as e:
         print(f"  ERR   FAIL  {method:4s} {path}  -> {e}")
