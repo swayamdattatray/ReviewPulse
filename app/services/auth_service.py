@@ -182,10 +182,10 @@ def login_user():
         
         # Create JWT tokens
         access_token = create_access_token(
-            identity=user.user_id,
+            identity=str(user.user_id),
             additional_claims={'role': user.role}
         )
-        refresh_token = create_refresh_token(identity=user.user_id)
+        refresh_token = create_refresh_token(identity=str(user.user_id))
         
         current_app.logger.info(f'User logged in: {user.username}')
         
@@ -219,7 +219,7 @@ def get_current_user():
         JSON with user data
     """
     try:
-        user_id = get_jwt_identity()
+        user_id = int(get_jwt_identity())
         user = User.query.get(user_id)
         
         if not user:

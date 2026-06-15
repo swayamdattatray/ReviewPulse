@@ -1,5 +1,6 @@
 import os
 import sys
+from sqlalchemy import text
 from app import create_app, db
 from database import init_db
 
@@ -10,7 +11,7 @@ app = create_app()
 def before_request():
     """Initialize database on first request if needed"""
     try:
-        db.session.execute('SELECT 1')
+        db.session.execute(text('SELECT 1'))
     except Exception as e:
         app.logger.error(f'Database connection error: {e}')
         with app.app_context():

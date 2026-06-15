@@ -2,7 +2,7 @@ from flask import Blueprint
 from app.services.auth_service import register_user, login_user, get_current_user
 from flask_jwt_extended import jwt_required
 
-auth_bp = Blueprint('auth', __name__, url_prefix='/api/v1/auth')
+auth_bp = Blueprint('auth', __name__, url_prefix='/auth')
 
 
 @auth_bp.route('/register', methods=['POST'])
